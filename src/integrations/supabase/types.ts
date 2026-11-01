@@ -14,7 +14,214 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      app_secrets: {
+        Row: {
+          key: string
+          value: string
+        }
+        Insert: {
+          key: string
+          value: string
+        }
+        Update: {
+          key?: string
+          value?: string
+        }
+        Relationships: []
+      }
+      categories: {
+        Row: {
+          id: string
+          name: string
+          parent_id: string | null
+          sort: number
+        }
+        Insert: {
+          id: string
+          name: string
+          parent_id?: string | null
+          sort?: number
+        }
+        Update: {
+          id?: string
+          name?: string
+          parent_id?: string | null
+          sort?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      concepts: {
+        Row: {
+          category_id: string
+          conditions: string
+          definition: string
+          formula: string
+          id: string
+          kind: string
+          level: string
+          name: string
+          synonyms: string[]
+          units: string
+        }
+        Insert: {
+          category_id: string
+          conditions?: string
+          definition: string
+          formula?: string
+          id: string
+          kind: string
+          level?: string
+          name: string
+          synonyms?: string[]
+          units?: string
+        }
+        Update: {
+          category_id?: string
+          conditions?: string
+          definition?: string
+          formula?: string
+          id?: string
+          kind?: string
+          level?: string
+          name?: string
+          synonyms?: string[]
+          units?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "concepts_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      games: {
+        Row: {
+          attempts_used: number
+          created_at: string
+          finished_at: string | null
+          guesses: Json
+          guest_id: string | null
+          hints: Json
+          id: string
+          mode: string
+          puzzle_date: string | null
+          secret_id: string
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          attempts_used?: number
+          created_at?: string
+          finished_at?: string | null
+          guesses?: Json
+          guest_id?: string | null
+          hints?: Json
+          id?: string
+          mode: string
+          puzzle_date?: string | null
+          secret_id: string
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          attempts_used?: number
+          created_at?: string
+          finished_at?: string | null
+          guesses?: Json
+          guest_id?: string | null
+          hints?: Json
+          id?: string
+          mode?: string
+          puzzle_date?: string | null
+          secret_id?: string
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "games_secret_id_fkey"
+            columns: ["secret_id"]
+            isOneToOne: false
+            referencedRelation: "concepts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      relation_types: {
+        Row: {
+          id: string
+          inverse_label: string
+          label: string
+        }
+        Insert: {
+          id: string
+          inverse_label: string
+          label: string
+        }
+        Update: {
+          id?: string
+          inverse_label?: string
+          label?: string
+        }
+        Relationships: []
+      }
+      relations: {
+        Row: {
+          context: string
+          id: number
+          source_id: string
+          target_id: string
+          type_id: string
+        }
+        Insert: {
+          context?: string
+          id?: number
+          source_id: string
+          target_id: string
+          type_id: string
+        }
+        Update: {
+          context?: string
+          id?: number
+          source_id?: string
+          target_id?: string
+          type_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "relations_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "concepts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relations_target_id_fkey"
+            columns: ["target_id"]
+            isOneToOne: false
+            referencedRelation: "concepts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relations_type_id_fkey"
+            columns: ["type_id"]
+            isOneToOne: false
+            referencedRelation: "relation_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
