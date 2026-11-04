@@ -125,8 +125,8 @@ function buildLayout(game: GameView, index: ConceptIndex) {
     }
     const start = cursor;
     const spans = n.children.map(place);
-    n.x = (n.children[0].x + n.children[n.children.length - 1].x) / 2;
-    const left = Math.min(spans[0][0], n.x - n.w / 2);
+    n.x = (n.children[0]!.x + n.children[n.children.length - 1]!.x) / 2;
+    const left = Math.min(spans[0]![0], n.x - n.w / 2);
     if (n.x - n.w / 2 < start) {
       // Parent wider than its children: shift subtree right.
       const dx = start - (n.x - n.w / 2);

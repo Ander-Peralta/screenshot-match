@@ -77,7 +77,7 @@ export function bfs(g: Graph, source: string): BfsResult {
   const parent = new Map<string, string>();
   const queue = [source];
   for (let i = 0; i < queue.length; i++) {
-    const u = queue[i];
+    const u = queue[i]!;
     for (const e of g.adj.get(u) ?? []) {
       if (dist.has(e.to)) continue;
       dist.set(e.to, dist.get(u)! + 1);
@@ -145,7 +145,7 @@ export function utcDate(d = new Date()): string {
 }
 
 export function dailySecret(eligible: string[], date: string, salt: string): string {
-  return eligible[hash32(`${salt}:${date}`) % eligible.length];
+  return eligible[hash32(`${salt}:${date}`) % eligible.length]!;
 }
 
 export function normalize(s: string): string {

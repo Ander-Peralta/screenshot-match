@@ -231,7 +231,7 @@ function GuessCard({ g, n }: { g: GuessView; n: number }) {
   );
 }
 
-function EndPanel({ game, onNew, signedIn }: { game: GameView; onNew?: () => void; signedIn: boolean }) {
+function EndPanel({ game, onNew, signedIn }: { game: GameView; onNew: (() => void) | undefined; signedIn: boolean }) {
   const s = game.secret!;
   const won = game.status === "won";
   return (

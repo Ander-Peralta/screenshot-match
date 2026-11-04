@@ -29,7 +29,7 @@ export function ConceptSearch({
   const results = useMemo(() => {
     const n = normalize(q);
     if (!n) return [];
-    const scored: { c: Item; score: number; syn?: string }[] = [];
+    const scored: { c: Item; score: number; syn: string | undefined }[] = [];
     for (const { c, keys } of index) {
       let best = -1;
       let syn: string | undefined;

@@ -153,7 +153,7 @@ function buildGuessView(kb: KB, g: StoredGuess, path: string[] | null, secret: s
   const route = path.slice(0, mi + 1).map((id, i, arr) => {
     const isSecret = id === secret;
     const ref = isSecret ? { id: "?", name: "Concepto secreto", isCategory: false, parentId: null } : nodeRef(kb, id);
-    const rel = i < arr.length - 1 ? edgeText(kb, id, arr[i + 1]) : null;
+    const rel = i < arr.length - 1 ? edgeText(kb, id, arr[i + 1]!) : null;
     return { node: ref, relToNext: rel ? { label: rel.label, context: mask(rel.context, secretName) } : null };
   });
   if (g.distance === 1) {
@@ -165,7 +165,7 @@ function buildGuessView(kb: KB, g: StoredGuess, path: string[] | null, secret: s
       connection: `Conexión directa: ${c.name} ${rel.label} el concepto secreto.${rel.context ? " " + mask(rel.context, secretName) : ""}`,
     };
   }
-  const mid = path[mi];
+  const mid = path[mi]!;
   const mref = nodeRef(kb, mid);
   const steps = route
     .slice(0, -1)
@@ -275,7 +275,7 @@ export async function getOrCreatePractice(o: Owner, fresh: boolean): Promise<Gam
   avoid.add(today);
   let pool = kb.eligible.filter((id) => !avoid.has(id));
   if (pool.length === 0) pool = kb.eligible.filter((id) => id !== today);
-  const secret = pool[Math.floor(Math.random() * pool.length)];
+  const secret = pool[Math.floor(Math.random() * pool.length)]!;
   const ins = await db.from("games").insert({ user_id: o.userId, guest_id: o.guestId, mode: "practice", secret_id: secret }).select("*").single();
   if (ins.error) throw new Error(ins.error.message);
   return buildView(kb, ins.data as unknown as GameRow);
