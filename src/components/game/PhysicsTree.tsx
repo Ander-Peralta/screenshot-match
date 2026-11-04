@@ -33,7 +33,7 @@ export function PhysicsTree({ game, index }: { game: GameView; index: ConceptInd
             />
           ))}
           {links.map((l) => (
-            <path key={l.key} d={curve(l.x1, l.y1, l.x2, l.y2)} fill="none" strokeDasharray="5 5" strokeWidth={1.4} className={l.cls} />
+            <path key={l.key} d={`M${l.x1},${l.y1 + H / 2} C${l.x1},${l.y1 + H / 2 + 40} ${l.x2},${l.y2 + H / 2 + 40} ${l.x2},${l.y2 + H / 2}`} fill="none" strokeDasharray="5 5" strokeWidth={1.4} className={l.cls} />
           ))}
         </svg>
         {nodes.map((n) => (
@@ -143,7 +143,7 @@ function buildLayout(game: GameView, index: ConceptIndex) {
   place(root);
 
   const width = Math.max(cursor + GAP, 320);
-  const height = Math.max(...nodes.map((n) => n.y)) + H + 24;
+  const height = Math.max(...nodes.map((n) => n.y)) + H + 64;
 
   const edges: { key: string; x1: number; y1: number; x2: number; y2: number; cls: string; thick: boolean }[] = [];
   for (const n of nodes)

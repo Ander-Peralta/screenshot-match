@@ -167,10 +167,6 @@ function buildGuessView(kb: KB, g: StoredGuess, path: string[] | null, secret: s
   }
   const mid = path[mi]!;
   const mref = nodeRef(kb, mid);
-  const steps = route
-    .slice(0, -1)
-    .map((s) => `${s.node.name} ${s.relToNext!.label}`)
-    .join(" → ");
   return {
     ...base,
     meeting: {
@@ -180,7 +176,7 @@ function buildGuessView(kb: KB, g: StoredGuess, path: string[] | null, secret: s
       remaining: g.distance - mi,
     },
     route,
-    connection: `${steps} ${mref.name}, que está a ${g.distance - mi} ${g.distance - mi === 1 ? "conexión" : "conexiones"} del concepto secreto.`,
+    connection: `${c.name} se conecta con ${mref.name} en ${mi} ${mi === 1 ? "paso" : "pasos"}; desde ahí faltan ${g.distance - mi} ${g.distance - mi === 1 ? "conexión" : "conexiones"} hasta el concepto secreto.`,
   };
 }
 
