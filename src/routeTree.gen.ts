@@ -10,12 +10,20 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CuentaRouteImport } from './routes/cuenta'
 import { Route as DiarioRouteImport } from './routes/diario'
+import { Route as EstadisticasRouteImport } from './routes/estadisticas'
 import { Route as PracticaRouteImport } from './routes/practica'
+import { Route as ReglasRouteImport } from './routes/reglas'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CuentaRoute = CuentaRouteImport.update({
+  id: '/cuenta',
+  path: '/cuenta',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DiarioRoute = DiarioRouteImport.update({
@@ -23,40 +31,70 @@ const DiarioRoute = DiarioRouteImport.update({
   path: '/diario',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EstadisticasRoute = EstadisticasRouteImport.update({
+  id: '/estadisticas',
+  path: '/estadisticas',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PracticaRoute = PracticaRouteImport.update({
   id: '/practica',
   path: '/practica',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReglasRoute = ReglasRouteImport.update({
+  id: '/reglas',
+  path: '/reglas',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/cuenta': typeof CuentaRoute
   '/diario': typeof DiarioRoute
+  '/estadisticas': typeof EstadisticasRoute
   '/practica': typeof PracticaRoute
+  '/reglas': typeof ReglasRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/cuenta': typeof CuentaRoute
   '/diario': typeof DiarioRoute
+  '/estadisticas': typeof EstadisticasRoute
   '/practica': typeof PracticaRoute
+  '/reglas': typeof ReglasRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/cuenta': typeof CuentaRoute
   '/diario': typeof DiarioRoute
+  '/estadisticas': typeof EstadisticasRoute
   '/practica': typeof PracticaRoute
+  '/reglas': typeof ReglasRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/diario' | '/practica'
+  fullPaths:
+    '/' | '/cuenta' | '/diario' | '/estadisticas' | '/practica' | '/reglas'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/diario' | '/practica'
-  id: '__root__' | '/' | '/diario' | '/practica'
+  to: '/' | '/cuenta' | '/diario' | '/estadisticas' | '/practica' | '/reglas'
+  id:
+    | '__root__'
+    | '/'
+    | '/cuenta'
+    | '/diario'
+    | '/estadisticas'
+    | '/practica'
+    | '/reglas'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CuentaRoute: typeof CuentaRoute
   DiarioRoute: typeof DiarioRoute
+  EstadisticasRoute: typeof EstadisticasRoute
   PracticaRoute: typeof PracticaRoute
+  ReglasRoute: typeof ReglasRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -68,11 +106,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cuenta': {
+      id: '/cuenta'
+      path: '/cuenta'
+      fullPath: '/cuenta'
+      preLoaderRoute: typeof CuentaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/diario': {
       id: '/diario'
       path: '/diario'
       fullPath: '/diario'
       preLoaderRoute: typeof DiarioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/estadisticas': {
+      id: '/estadisticas'
+      path: '/estadisticas'
+      fullPath: '/estadisticas'
+      preLoaderRoute: typeof EstadisticasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/practica': {
@@ -82,13 +134,23 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PracticaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reglas': {
+      id: '/reglas'
+      path: '/reglas'
+      fullPath: '/reglas'
+      preLoaderRoute: typeof ReglasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CuentaRoute: CuentaRoute,
   DiarioRoute: DiarioRoute,
+  EstadisticasRoute: EstadisticasRoute,
   PracticaRoute: PracticaRoute,
+  ReglasRoute: ReglasRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
