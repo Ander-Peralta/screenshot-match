@@ -81,27 +81,65 @@ function buildLayout(game: GameView, index: ConceptIndex) {
   for (const g of game.guesses) role(g.concept.id).guess = g.distance;
   for (const g of game.guesses) if (g.meeting) role(g.meeting.node.id).meeting = true;
   for (const h of game.hints) role(h.node.id).hint = true;
-  if (game.secret) {
-    role(game.secret.node.id).secret = true;
-  }
+  if (game.secret) role(game.secret.node.id).secret = true;
+
   const map = new Map<string, TNode>();
-  const get = (id: string): TNode | null => {
+  const makeNode = (id: string): TNode => {
     if (map.has(id)) return map.get(id)!;
     const cat = cats.get(id);
     const con = concepts.get(id);
-    if (!cat && !con) return null;
-    const node: TNode = { id, name: cat?.name ?? con!.name, isCategory: !!cat, depth: 0, children: [], role: roles.get(id) ?? {}, x: 0, y: 0, w: 0 };
+    const name = cat?.name ?? con?.name ?? id;
+    const node: TNode = {
+      id,
+      name,
+      isCategory: !!cat,
+      depth: 0,
+      children: [],
+      role: roles.get(id) ?? {},
+      x: 0,
+      y: 0,
+      w: 0,
+    };
     map.set(id, node);
-    const parentId = cat ? cat.parentId : con!.categoryId;
-    if (parentId) {
-      const p = get(parentId);
-      p?.children.push(node);
-    }
     return node;
   };
-  const root = get("cat:fisica");
-  if (!root) return null;
-  for (const id of roles.keys()) get(id);
+
+  // 1. La raíz siempre es Física
+  const root = makeNode("cat:fisica");
+
+  // 2. Conectar cada intento según su Punto de Encuentro (LCA)
+  for (const g of game.guesses) {
+    const guessNode = makeNode(g.concept.id);
+    const meetingId = g.meeting ? g.meeting.node.id : "cat:fisica";
+
+    if (meetingId === "cat:fisica") {
+      if (!root.children.some((c) => c.id === guessNode.id)) {
+        root.children.push(guessNode);
+      }
+    } else {
+      const meetingNode = makeNode(meetingId);
+      if (!root.children.some((c) => c.id === meetingNode.id)) {
+        root.children.push(meetingNode);
+      }
+      if (!meetingNode.children.some((c) => c.id === guessNode.id)) {
+        meetingNode.children.push(guessNode);
+      }
+    }
+  }
+
+  // 3. Si hay pistas o secreto revelado
+  for (const h of game.hints) {
+    const hintNode = makeNode(h.node.id);
+    if (!root.children.some((c) => c.id === hintNode.id)) {
+      root.children.push(hintNode);
+    }
+  }
+  if (game.secret) {
+    const secretNode = makeNode(game.secret.node.id);
+    if (!root.children.some((c) => c.id === secretNode.id)) {
+      root.children.push(secretNode);
+    }
+  }
 
   const sortKey = (n: TNode) => (n.isCategory ? `0${String(cats.get(n.id)?.sort ?? 0).padStart(3, "0")}` : `1${n.name}`);
   const nodes: TNode[] = [];
@@ -115,7 +153,7 @@ function buildLayout(game: GameView, index: ConceptIndex) {
   };
   setDepth(root, 0);
 
-  // Tidy-ish layout: leaves left-to-right, parents centered over children.
+  // Posicionamiento de ramas
   let cursor = GAP;
   const place = (n: TNode): [number, number] => {
     if (!n.children.length) {
@@ -128,7 +166,6 @@ function buildLayout(game: GameView, index: ConceptIndex) {
     n.x = (n.children[0]!.x + n.children[n.children.length - 1]!.x) / 2;
     const left = Math.min(spans[0]![0], n.x - n.w / 2);
     if (n.x - n.w / 2 < start) {
-      // Parent wider than its children: shift subtree right.
       const dx = start - (n.x - n.w / 2);
       shift(n, dx);
       cursor += dx;
@@ -154,15 +191,7 @@ function buildLayout(game: GameView, index: ConceptIndex) {
       edges.push({ key: `${n.id}>${c.id}`, x1: n.x, y1: n.y + H, x2: c.x, y2: c.y, cls, thick: c.isCategory });
     }
 
-  // Cross-branch links: guess → meeting point (when it is not one of its ancestors).
   const links: typeof edges = [];
-  for (const g of game.guesses) {
-    if (!g.meeting) continue;
-    const a = map.get(g.concept.id);
-    const b = map.get(g.meeting.node.id);
-    if (!a || !b || isAncestor(map, b.id, a, concepts, cats)) continue;
-    links.push({ key: `${a.id}~${b.id}`, x1: a.x, y1: a.y + H / 2, x2: b.x, y2: b.y + H / 2, cls: "stroke-accent", thick: false });
-  }
   return { nodes, edges, links, width, height };
 }
 

@@ -100,67 +100,66 @@ export function GameBoard({ mode }: { mode: "daily" | "practice" }) {
     <div className="space-y-6">
       {finished && game.secret && <EndPanel game={game} onNew={mode === "practice" ? () => load(true) : undefined} signedIn={!!user} />}
 
-      {!finished && (
-        <div className="space-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
-            <div className="flex items-center gap-3">
-              <AttemptDots used={game.attemptsUsed} max={game.maxAttempts} />
-              <span className="font-mono text-muted-foreground">
-                {remaining} {remaining === 1 ? "intento" : "intentos"}
-              </span>
-              {best !== null && <span className="font-mono text-muted-foreground">· mejor: {best}</span>}
-            </div>
-            <Button variant="outline" size="sm" disabled={!game.canHint || busy} onClick={onHint} title={`Cuesta ${game.hintCost} intentos`}>
-              <Lightbulb className="h-4 w-4" /> Pista (−{game.hintCost})
-            </Button>
-          </div>
-          <ConceptSearch concepts={index.concepts} used={used} disabled={busy} onPick={onGuess} />
-        </div>
-      )}
-
-      {game.guesses.length === 0 && game.hints.length === 0 && !finished ? (
-        <div className="rounded-xl border border-dashed bg-card/50 p-10 text-center">
-          <p className="font-display text-xl">El árbol está vacío.</p>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Escribe cualquier concepto físico. Te diremos a cuántas conexiones está del concepto secreto y dónde se encuentran sus ramas.
-          </p>
-        </div>
-      ) : (
-        <PhysicsTree game={game} index={index} />
-      )}
-
-      {game.hints.length > 0 && (
-        <div className="space-y-2">
-          <h3 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">Pistas</h3>
-          {game.hints.map((h, i) => (
-            <div key={i} className="flex gap-3 rounded-lg border border-accent/40 bg-card p-3 text-sm">
-              <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
-              <div>
-                <span className="font-mono font-semibold">{h.node.name}</span>{" "}
-                <span className="text-muted-foreground">
-                  — {h.kind === "branch" ? "el concepto secreto pertenece a esta rama" : `a ${h.distance} ${h.distance === 1 ? "conexión" : "conexiones"} del secreto`}
-                </span>
-                <p className="mt-1 text-muted-foreground">{h.description}</p>
+      {/* Contenedor de 2 columnas: izquierda 420px, derecha el resto */}
+      <div className="grid grid-cols-1 lg:grid-cols-[420px_1fr] gap-6 items-start">
+        {/* COLUMNA IZQUIERDA: Búsqueda, intentos y descripciones */}
+        <div className="space-y-4">
+          {!finished && (
+            <div className="space-y-3 rounded-xl border bg-card p-4 shadow-card">
+              <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
+                <div className="flex items-center gap-3">
+                  <AttemptDots used={game.attemptsUsed} max={game.maxAttempts} />
+                  <span className="font-mono text-muted-foreground">
+                    {remaining} {remaining === 1 ? "intento" : "intentos"}
+                  </span>
+                  {best !== null && <span className="font-mono text-muted-foreground">· mejor: {best}</span>}
+                </div>
+                <Button variant="outline" size="sm" disabled={!game.canHint || busy} onClick={onHint} title={`Cuesta ${game.hintCost} intentos`}>
+                  <Lightbulb className="h-4 w-4" /> Pista (−{game.hintCost})
+                </Button>
               </div>
+              <ConceptSearch concepts={index.concepts} used={used} disabled={busy} onPick={onGuess} />
             </div>
-          ))}
-        </div>
-      )}
+          )}
 
-      {ordered.length > 0 && (
-        <div className="space-y-2">
-          <h3 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">Intentos</h3>
-          {ordered.map((g, i) => (
-            <GuessCard key={g.concept.id} g={g} n={game.guesses.length - i} />
-          ))}
+          {game.hints.length > 0 && (
+            <div className="space-y-2">
+              <h3 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">Pistas</h3>
+              {game.hints.map((h, i) => (
+                <div key={i} className="flex gap-3 rounded-lg border border-accent/40 bg-card p-3 text-sm">
+                  <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                  <div>
+                    <span className="font-mono font-semibold">{h.node.name}</span>{" "}
+                    <span className="text-muted-foreground">
+                      — {h.kind === "branch" ? "el concepto secreto pertenece a esta rama" : `a ${h.distance} conexiones`}
+                    </span>
+                    <p className="mt-1 text-muted-foreground">{h.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {ordered.length > 0 && (
+            <div className="space-y-2">
+              <h3 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">Intentos</h3>
+              {ordered.map((g, i) => (
+                <GuessCard key={g.concept.id} g={g} n={game.guesses.length - i} />
+              ))}
+            </div>
+          )}
         </div>
-      )}
+
+        {/* COLUMNA DERECHA: El Árbol (siempre visible y pegajoso al hacer scroll) */}
+        <div className="lg:sticky lg:top-4">
+          <PhysicsTree game={game} index={index} />
+        </div>
+      </div>
+
       {!user && ready && (
         <p className="text-center text-xs text-muted-foreground">
           Juegas como visitante.{" "}
-          <Link to="/cuenta" className="underline">
-            Crea una cuenta
-          </Link>{" "}
+          <Link to="/cuenta" className="underline">Crea una cuenta</Link>{" "}
           para guardar rachas en cualquier dispositivo.
         </p>
       )}
