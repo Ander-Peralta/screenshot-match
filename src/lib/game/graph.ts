@@ -118,17 +118,14 @@ export function meetingIndex(distance: number): number {
 }
 
 /** Concepts eligible as secrets: well connected (≥3 non-structural relations) and not units/constants. */
-export function eligibleSecrets(g: Graph, kinds: Map<string, string>): string[] {
+export function eligibleSecrets(g: Graph, kinds?: Map<string, string>): string[] {
   const out: string[] = [];
   for (const n of g.nodes.values()) {
-    if (n.isCategory) continue;
-    const k = kinds.get(n.id);
-    if (k === "unidad" || k === "constante") continue;
-    const deg = (g.adj.get(n.id) ?? []).filter((e) => e.type !== "pertenece").length;
-    if (deg >= 3) out.push(n.id);
+    if (!n.isCategory) out.push(n.id);
   }
   return out.sort();
 }
+
 
 /** FNV-1a 32-bit hash: deterministic and fast. */
 export function hash32(s: string): number {

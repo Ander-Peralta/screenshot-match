@@ -1,3 +1,4 @@
+import { parseTaxonomy } from "./taxonomy";
 import { getRequestHeader } from "@tanstack/react-start/server";
 import {
   bfs,
@@ -36,28 +37,62 @@ async function admin() {
 
 export async function loadKB(): Promise<KB> {
   if (kbCache && Date.now() - kbCache.loadedAt < 10 * 60_000) return kbCache;
+
+  const { categories, concepts } = parseTaxonomy();
+
+  const conceptRows: ConceptRow[] = concepts.map((c) => ({
+    id: c.id,
+    name: c.name,
+    kind: "concepto",
+    category_id: c.category_id,
+    definition: c.definition,
+    formula: "",
+    units: "",
+    synonyms: c.synonyms,
+    conditions: c.rel_note ? `Relacionado con: ${c.rel_note}` : "",
+    level: "basico",
+  }));
+
+  const categoryRows: CategoryRow[] = categories.map((k) => ({
+    id: k.id,
+    name: k.name,
+    parent_id: k.parent_id,
+    sort: k.sort,
+  }));
+
+  // Árbol estricto jerárquico: relaciones cruzadas vacías
+  const graph = buildGraph(conceptRows, categoryRows, []);
+  const kinds = new Map(conceptRows.map((x) => [x.id, x.kind]));
+
+  // Asegura que los conceptos existan en la BD para que las partidas nuevas se guarden sin errores
   const db = await admin();
-  const [c, k, r, t, s] = await Promise.all([
-    db.from("concepts").select("*").range(0, 9999),
-    db.from("categories").select("*"),
-    db.from("relations").select("source_id,type_id,target_id,context").range(0, 49999),
-    db.from("relation_types").select("*"),
-    db.from("app_secrets").select("value").eq("key", "daily_salt").single(),
-  ]);
-  for (const res of [c, k, r, t, s]) if (res.error) throw new Error(res.error.message);
-  const concepts = c.data as ConceptRow[];
-  const categories = k.data as CategoryRow[];
-  const graph = buildGraph(concepts, categories, r.data!);
-  const kinds = new Map(concepts.map((x) => [x.id, x.kind]));
+  await db.from("categories").upsert(
+    categoryRows.map((k) => ({ id: k.id, name: k.name, parent_id: k.parent_id, sort: k.sort })),
+    { onConflict: "id", ignoreDuplicates: true },
+  );
+  await db.from("concepts").upsert(
+    conceptRows.map((c) => ({
+      id: c.id,
+      name: c.name,
+      kind: c.kind,
+      category_id: c.category_id,
+      definition: c.definition,
+    })),
+    { onConflict: "id", ignoreDuplicates: true },
+  );
+
+  const s = await db.from("app_secrets").select("value").eq("key", "daily_salt").maybeSingle();
+
   kbCache = {
-    concepts: new Map(concepts.map((x) => [x.id, x])),
-    categories: new Map(categories.map((x) => [x.id, x])),
-    relTypes: new Map((t.data as RelationTypeRow[]).map((x) => [x.id, x])),
+    concepts: new Map(conceptRows.map((x) => [x.id, x])),
+    categories: new Map(categoryRows.map((x) => [x.id, x])),
+    relTypes: new Map(),
     graph,
     eligible: eligibleSecrets(graph, kinds),
-    salt: s.data!.value,
+    salt: s.data?.value ?? "salt-fisicazoa-2026",
     loadedAt: Date.now(),
   };
+
   return kbCache;
 }
 
